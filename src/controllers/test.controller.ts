@@ -8,8 +8,10 @@ import NtModel from '../models/Nt.model';
 import OTKModel from '../models/Otk.model';
 import AnilistModel from '../models/Myanilist';
 import _24HModel from '../models/24H.model';
-import { saveComics } from '../actions/scrapeComics';
+import { saveComics, saveDescriptionComics } from '../actions';
+import faunaDb from '../services/faunaDb';
 
+const { paginate, getDocumentId } = faunaDb();
 const Nt = NtModel.Instance(process.env.NT_SOURCE_URL as string);
 const Lh = lhModel.Instance(process.env.LH_SOURCE_URL as string);
 const Otk = OTKModel.Instance(process.env.OTK_SOURCE_URL as string);
@@ -25,6 +27,8 @@ export default function testController() {
     return {
         testGet: async (req: Request, res: Response, next: NextFunction) => {
             try {
+                const start = new Date(Date.now());
+
                 // const data = await Myanilist.getInfo('119161');
                 // const data = await getComics();
 
@@ -34,17 +38,26 @@ export default function testController() {
                 //     }
                 // });
 
-                for (let i = 1; i <= 511; i++) {
-                    await saveComics(i);
-                }
+                // for (let i = 1; i <= 551; i++) {
+                //     await saveComics(i);
+                // }
+
+                await saveDescriptionComics();
+
+                // const data = await Myanilist.getInfo('116880');
 
                 return res.status(200).json({
                     message: 'ok',
                     // data,
+                    // cost:
+                    //     Math.round(
+                    //         (new Date(Date.now()).getTime() - start.getTime()) /
+                    //             1000,
+                    //     ) + 's',
                 });
             } catch (err) {
-                return res.status(200).json({
-                    message: 'not found',
+                return res.status(400).json({
+                    message: 'error',
                 });
             }
         },

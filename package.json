@@ -21,7 +21,8 @@
         "faunadb": "^4.6.0",
         "http-errors": "^2.0.0",
         "node-cron": "^3.0.0",
-        "node-html-parser": "^5.3.3"
+        "node-html-parser": "^5.3.3",
+        "puppeteer": "^15.5.0"
     },
     "devDependencies": {
         "@types/axios": "^0.14.0",

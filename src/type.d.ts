@@ -38,7 +38,7 @@ export interface BTSearch {
 }
 
 export interface MyAniSearch {
-    id: number;
+    id: string;
     type: string;
     name: string;
     url: string;

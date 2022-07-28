@@ -3,7 +3,6 @@ import NtModel from '../models/Nt.model';
 import OTKModel from '../models/Otk.model';
 import AnilistModel from '../models/Myanilist';
 import _24HModel from '../models/24H.model';
-import { resolve } from 'path';
 
 const Nt = NtModel.Instance(process.env.NT_SOURCE_URL as string);
 const Lh = lhModel.Instance(process.env.LH_SOURCE_URL as string);
@@ -35,12 +34,12 @@ export default function Comics() {
                             }
 
                             const OtkRes = await Otk.search(e.name);
-                            if (OtkRes?.length) {
+                            if (OtkRes?.length && OtkRes[0]?.slug) {
                                 e.sourcesAvailable.push({
                                     sourceName: 'OTK',
                                     sourceSlug:
                                         (process.env.OTK_SOURCE_URL as string) +
-                                        OtkRes[0]?.slug,
+                                        OtkRes[0].slug,
                                 });
                             }
 
@@ -60,6 +59,20 @@ export default function Comics() {
                 }
             } catch (err) {
                 console.log(err);
+            }
+        },
+
+        getComicsInfo: async (comicName: string) => {
+            try {
+                const data = await Myanilist.search(comicName);
+
+                if (data) {
+                    const info = await Myanilist.getInfo(data.id);
+
+                    return { mal_id: data.id, ...info };
+                }
+            } catch (err) {
+                return null;
             }
         },
     };
