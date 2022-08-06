@@ -6,8 +6,8 @@ import logEvents from '../utils/logEvents';
 import puppeteer from 'puppeteer';
 import { normalizeString } from '../utils/stringHandler';
 
-export default class BtModal extends Scraper {
-    private static instance: BtModal;
+export default class Myanilist extends Scraper {
+    private static instance: Myanilist;
 
     private constructor(
         baseUrl: string,
