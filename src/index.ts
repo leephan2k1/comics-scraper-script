@@ -5,13 +5,13 @@ import createError from 'http-errors';
 import logger from 'morgan';
 
 import { ErrorType } from '@/types/http';
+import { PORT } from './config';
 
 import route from './routes';
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 5002;
 
 //apply middleware
 app.use(cors());
@@ -47,6 +47,6 @@ app.use((err: ErrorType, req: Request, res: Response, next: NextFunction) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`⚡️[server]: Server is running at ${port}`);
+app.listen(PORT, () => {
+    console.log(`⚡️[server]: Server is running at ${PORT}`);
 });
