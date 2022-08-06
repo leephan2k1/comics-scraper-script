@@ -13,6 +13,12 @@ export interface NTMangaPreview {
     sourcesAvailable?: Source[];
 }
 
+export interface Genres_NT {
+    id: string;
+    value: string;
+    label: string;
+}
+
 export interface Source {
     sourceName: string;
     sourceSlug: string;

@@ -1,11 +1,16 @@
 import { AxiosRequestConfig } from 'axios';
 import { parse } from 'node-html-parser';
+
 import Scraper from '../libs/Scraper';
-import { normalizeString } from '../utils/stringHandler';
 import { NtDataList } from '../type';
+import { normalizeString } from '../utils/stringHandler';
+import { GENRES_NT } from '../constants';
+import cloudinaryController from '../controllers/cloudinary.controller';
+import { Genres_NT } from 'type';
 
 export default class NtModel extends Scraper {
     private static instance: NtModel;
+    private static order = 1;
 
     private constructor(
         baseUrl: string,
@@ -27,7 +32,9 @@ export default class NtModel extends Scraper {
         return this.instance;
     }
 
-    private parseSource(document: HTMLElement): NtDataList {
+    private async parseSource(document: HTMLElement): Promise<NtDataList> {
+        const { uploadImage } = cloudinaryController();
+
         const mangaList = document.querySelectorAll(
             '#aspnetForm > main > div:nth-child(2) > div.row .item',
         );
@@ -49,7 +56,7 @@ export default class NtModel extends Scraper {
             const tooltip = manga.querySelectorAll('.box_li .message_main p');
             let status: string | null = '';
             let author: string | null = '';
-            let genres: string[] | null = [''];
+            let genres: string[] | Genres_NT[] | null = [''];
             let otherName: string | null = '';
             tooltip.forEach((item) => {
                 const title = item.querySelector('label')?.textContent;
@@ -73,6 +80,17 @@ export default class NtModel extends Scraper {
                         otherName = str;
                         break;
                 }
+
+                //@ts-ignore
+                genres = genres?.map((genre) => {
+                    const genreObj = GENRES_NT.find(
+                        (e) =>
+                            e.label.toLowerCase().trim() ===
+                            genre.toString().toLocaleLowerCase().trim(),
+                    );
+                    if (genreObj) return genreObj;
+                    else return genre;
+                });
             });
 
             const review = normalizeString(
@@ -84,7 +102,11 @@ export default class NtModel extends Scraper {
             );
             const slug = path.substring(path.lastIndexOf('/') + 1);
 
+            const custom_id = NtModel.order;
+            ++NtModel.order;
+
             return {
+                custom_id,
                 status,
                 author,
                 genres,
@@ -108,6 +130,19 @@ export default class NtModel extends Scraper {
                     .substring(totalPagesPath.lastIndexOf('/') + 1)
                     .trim(),
             ) || 1;
+
+        //upload images to cloudinary:
+        for (let i = 0; i < mangaData.length; i++) {
+            const cloudinaryThumbnail = await uploadImage(
+                mangaData[i].thumbnail,
+                mangaData[i].custom_id,
+            );
+
+            mangaData[i] = {
+                ...mangaData[i],
+                thumbnail: cloudinaryThumbnail,
+            };
+        }
 
         return { mangaData, totalPages };
     }
