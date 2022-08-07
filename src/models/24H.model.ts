@@ -1,7 +1,8 @@
-import Scraper from '../libs/Scraper';
 import { AxiosRequestConfig } from 'axios';
 import { parse } from 'node-html-parser';
-import { normalizeString, isExactMatch } from '../utils/stringHandler';
+
+import Scraper from '../libs/Scraper';
+import { isExactMatch } from '../utils/stringHandler';
 
 export default class _24HModel extends Scraper {
     private static instance: _24HModel;

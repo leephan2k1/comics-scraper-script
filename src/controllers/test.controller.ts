@@ -8,10 +8,11 @@ import NtModel from '../models/Nt.model';
 import OTKModel from '../models/Otk.model';
 import AnilistModel from '../models/Myanilist';
 import _24HModel from '../models/24H.model';
-import { saveComics, saveDescriptionComics } from '../actions';
+import { saveComics, saveDescriptionComics, saveChapters } from '../actions';
 import faunaDb from '../services/faunaDb';
 
-const { paginate, getDocumentId } = faunaDb();
+import cloudinaryController from './cloudinary.controller';
+
 const Nt = NtModel.Instance(process.env.NT_SOURCE_URL as string);
 const Lh = lhModel.Instance(process.env.LH_SOURCE_URL as string);
 const Otk = OTKModel.Instance(process.env.OTK_SOURCE_URL as string);
@@ -22,6 +23,7 @@ const Myanilist = AnilistModel.Instance(
 
 import Comics from '../models';
 const { getComics } = Comics();
+const { uploadImage } = cloudinaryController();
 
 export default function testController() {
     return {
@@ -38,17 +40,31 @@ export default function testController() {
                 //     }
                 // });
 
-                // for (let i = 1; i <= 551; i++) {
-                //     await saveComics(i);
-                // }
+                /* Scape all comics. */
+                // await Promise.allSettled(
+                //     [...new Array(544).keys()].map(async (e) => {
+                //         await saveComics(e + 1);
+                //     }),
+                // );
 
-                await saveDescriptionComics();
+                // await saveDescriptionComics();
 
-                // const data = await Myanilist.getInfo('116880');
+                // const data = await Otk.getChapters(
+                //     'https://otakusan.net/manga-detail/72756/manh-len-tu-coi-chet',
+                // );
+
+                // const result = await faunaDb().paginate(5);
+
+                //@ts-ignore
+                // const data = result.data.map((e) => {
+                //     return e.ref.id;
+                // });
+
+                await saveChapters();
 
                 return res.status(200).json({
                     message: 'ok',
-                    // data,
+                    // result,
                     // cost:
                     //     Math.round(
                     //         (new Date(Date.now()).getTime() - start.getTime()) /

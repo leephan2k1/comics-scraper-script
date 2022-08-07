@@ -1,7 +1,9 @@
 import Scraper from '../libs/Scraper';
 import { parse } from 'node-html-parser';
-import { AxiosRequestConfig } from 'axios';
-import { normalizeString, isExactMatch } from '../utils/stringHandler';
+import axios, { AxiosRequestConfig } from 'axios';
+import { normalizeString } from '../utils/stringHandler';
+import { Chapter } from 'type';
+import logEvents from '../utils/logEvents';
 
 export default class OTKModel extends Scraper {
     private static instance: OTKModel;
@@ -63,6 +65,60 @@ export default class OTKModel extends Scraper {
         } catch (err) {
             console.log(err);
             return null;
+        }
+    }
+
+    public async getChapters(comicUrl: string): Promise<Chapter[]> {
+        try {
+            const { data } = await axios.get(comicUrl);
+
+            const document = parse(data);
+
+            const chapterContainer = document.querySelectorAll(
+                '#chapter > div.chapter-list > table > tbody > tr.chapter',
+            );
+
+            const chapters = chapterContainer.map((e) => {
+                const chapterNumber = String(
+                    e.querySelector('td:nth-child(1)')?.textContent.trim(),
+                );
+
+                const chapterTitle = String(
+                    e.querySelector('td:nth-child(2) > a')?.textContent.trim(),
+                );
+
+                const view = String(
+                    e.querySelector('td:nth-child(3)')?.textContent.trim(),
+                );
+
+                const updatedAt = String(
+                    e
+                        .querySelector('td.read-chapter.minimize')
+                        ?.textContent.trim(),
+                );
+
+                const chapterSlug = String(
+                    e
+                        .querySelector('td:nth-child(2) > a')
+                        ?.getAttribute('href'),
+                );
+
+                const chapterId = String(chapterSlug?.split('/')[2]);
+
+                return {
+                    chapterId,
+                    chapterSlug,
+                    chapterNumber,
+                    chapterTitle,
+                    view,
+                    updatedAt,
+                };
+            });
+
+            return chapters;
+        } catch (error) {
+            logEvents('chapters', `get ${comicUrl} source OTK error!`);
+            return [] as Chapter[];
         }
     }
 }

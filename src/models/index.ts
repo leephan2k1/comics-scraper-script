@@ -3,6 +3,7 @@ import NtModel from '../models/Nt.model';
 import OTKModel from '../models/Otk.model';
 import AnilistModel from '../models/Myanilist';
 import _24HModel from '../models/24H.model';
+import { Source_Type } from 'type';
 
 const Nt = NtModel.Instance(process.env.NT_SOURCE_URL as string);
 const Lh = lhModel.Instance(process.env.LH_SOURCE_URL as string);
@@ -73,6 +74,21 @@ export default function Comics() {
                 }
             } catch (err) {
                 return null;
+            }
+        },
+
+        getChapters: async (comicSlug: string, sourceName: Source_Type) => {
+            try {
+                switch (sourceName) {
+                    case 'LHM':
+                        return await Lh.getChapters(comicSlug);
+                    case 'OTK':
+                        return await Otk.getChapters(comicSlug);
+                    case 'NTC':
+                        return await Nt.getChapters(comicSlug);
+                }
+            } catch (err) {
+                return [];
             }
         },
     };

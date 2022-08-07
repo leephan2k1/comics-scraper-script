@@ -1,7 +1,9 @@
 import Scraper from '../libs/Scraper';
 import { parse } from 'node-html-parser';
-import { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { LHSearch } from '../type';
+import { Chapter } from 'type';
+import logEvents from '../utils/logEvents';
 
 export default class LHModal extends Scraper {
     private static instance: LHModal;
@@ -51,7 +53,7 @@ export default class LHModal extends Scraper {
         }
     }
 
-    private parseChapters(chapters: HTMLElement[]) {
+    private parseChapters(chapters: HTMLElement[]): Chapter[] {
         return [...chapters].map((item) => {
             const chapterId = item
                 .getAttribute('href')
@@ -65,9 +67,13 @@ export default class LHModal extends Scraper {
 
             const updatedAt = item?.querySelector('.chapter-time')?.textContent;
 
+            const slug = item.getAttribute('href');
+            const chapterSlug = slug?.slice(slug.indexOf('/truyen-tranh'));
+
             return {
-                chapterId,
-                chapterNumber:
+                chapterId: String(chapterId),
+                chapterSlug: String(chapterSlug),
+                chapterNumber: String(
                     chapterId
                         ?.slice(
                             0,
@@ -76,9 +82,10 @@ export default class LHModal extends Scraper {
                                 : chapterId.length,
                         )
                         .replace(/^\D+/g, '') ||
-                    chapterTitle?.replace(/^\D+/g, ''),
-                chapterTitle,
-                updatedAt,
+                        chapterTitle?.replace(/^\D+/g, ''),
+                ),
+                chapterTitle: String(chapterTitle),
+                updatedAt: String(updatedAt),
                 view: 'updating',
             };
         });
@@ -212,33 +219,18 @@ export default class LHModal extends Scraper {
         }
     }
 
-    public async getChapters(mangaSlug: string, chapterId: string) {
+    public async getChapters(mangaSlug: string) {
         try {
-            const { data } = await this.client.get(
-                `${this.baseUrl}/truyen-tranh/${mangaSlug}/${chapterId}`,
-            );
-
+            const { data } = await axios.get(mangaSlug);
             const document = parse(data);
 
-            const imagesList = document.querySelectorAll(
-                '#chapter-content img',
+            return this.parseChapters(
+                //@ts-ignore
+                Array.from(document.querySelectorAll('.list-chapters a')),
             );
-
-            const images = Array.from(imagesList).map((imageItem, index) => {
-                const imgSrc = imageItem.getAttribute('data-src')?.trim();
-                const imgSrcCDN = imageItem.getAttribute('src')?.trim();
-
-                return {
-                    id: index,
-                    imgSrc,
-                    imgSrcCDN,
-                };
-            });
-
-            return images;
-        } catch (err) {
-            console.log(err);
-            return null;
+        } catch (error) {
+            logEvents('chapters', `get ${mangaSlug} source LHM error!`);
+            return [] as Chapter[];
         }
     }
 }
