@@ -2,7 +2,7 @@ import Scraper from '../libs/Scraper';
 import { parse } from 'node-html-parser';
 import axios, { AxiosRequestConfig } from 'axios';
 import { LHSearch } from '../type';
-import { Chapter } from 'type';
+import { Chapter, Page_Image } from 'type';
 import logEvents from '../utils/logEvents';
 
 export default class LHModal extends Scraper {
@@ -18,8 +18,8 @@ export default class LHModal extends Scraper {
 
     public static Instance(
         baseUrl: string,
-        axiosConfig?: AxiosRequestConfig,
         timeout?: number,
+        axiosConfig?: AxiosRequestConfig,
     ) {
         if (!this.instance) {
             this.instance = new this(baseUrl, axiosConfig, timeout);
@@ -231,6 +231,38 @@ export default class LHModal extends Scraper {
         } catch (error) {
             logEvents('chapters', `get ${mangaSlug} source LHM error!`);
             return [] as Chapter[];
+        }
+    }
+
+    public async getChapterPages(chapterSlug: string): Promise<Page_Image[]> {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}${chapterSlug}`,
+            );
+            const document = parse(data);
+
+            const imagesList = document.querySelectorAll(
+                '#chapter-content img',
+            );
+
+            const images = Array.from(imagesList).map((imageItem, index) => {
+                const src = String(imageItem.getAttribute('data-src')?.trim());
+
+                const fallbackSrc =
+                    imageItem.getAttribute('src') &&
+                    String(imageItem.getAttribute('src')?.trim());
+
+                return {
+                    id: String(index),
+                    src,
+                    fallbackSrc,
+                };
+            });
+
+            return images;
+        } catch (err) {
+            console.log(err);
+            return [] as Page_Image[];
         }
     }
 }

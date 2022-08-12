@@ -8,6 +8,7 @@ import Scraper from '../libs/Scraper';
 import { NtDataList } from '../type';
 import logEvents from '../utils/logEvents';
 import { normalizeString } from '../utils/stringHandler';
+import { Page_Image } from 'type';
 
 export default class NtModel extends Scraper {
     private static instance: NtModel;
@@ -171,7 +172,7 @@ export default class NtModel extends Scraper {
     public async scrapePage(page: number) {
         try {
             const { data } = await this.client.get(
-                `${this.baseUrl}/?page=${page}`,
+                `${this.baseUrl}/tim-truyen`,
             );
 
             const document = parse(data);
@@ -240,6 +241,49 @@ export default class NtModel extends Scraper {
             console.log(`Scrape chapter ${comicSlug} error`);
             logEvents('chapters', `get ${comicSlug} source NTC error!`);
             return [] as Chapter[];
+        }
+    }
+
+    public async getChapterPages(chapterSlug: string): Promise<Page_Image[]> {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}${chapterSlug}`,
+            );
+            const document = parse(data);
+
+            const pagesRaw = document.querySelectorAll(
+                '.reading-detail .page-chapter',
+            );
+
+            const pages = [...pagesRaw].map((page) => {
+                const id = String(
+                    page.querySelector('img')?.getAttribute('data-index'),
+                );
+
+                const source = page
+                    .querySelector('img')
+                    ?.getAttribute('data-original');
+
+                const srcCDN = page
+                    .querySelector('img')
+                    ?.getAttribute('data-cdn');
+
+                const alternativeSrc = page
+                    .querySelector('img')
+                    ?.getAttribute('src');
+
+                const imgSrc = super.unshiftProtocol(String(source));
+
+                const imgSrcCDN = super.unshiftProtocol(
+                    String(srcCDN ? srcCDN : alternativeSrc),
+                );
+
+                return { id, src: imgSrc, fallbackSrc: imgSrcCDN };
+            });
+
+            return pages;
+        } catch (err) {
+            return [] as Page_Image[];
         }
     }
 }

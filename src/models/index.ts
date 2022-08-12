@@ -6,7 +6,7 @@ import _24HModel from '../models/24H.model';
 import { Source_Type } from 'type';
 
 const Nt = NtModel.Instance(process.env.NT_SOURCE_URL as string);
-const Lh = lhModel.Instance(process.env.LH_SOURCE_URL as string);
+const Lh = lhModel.Instance(process.env.LH_SOURCE_URL as string, 10000);
 const Otk = OTKModel.Instance(process.env.OTK_SOURCE_URL as string);
 const _24H = _24HModel.Instance(process.env.T4_SOURCE_URL as string);
 const Myanilist = AnilistModel.Instance(
@@ -44,16 +44,6 @@ export default function Comics() {
                                 });
                             }
 
-                            const T24HRes = await _24H.search(e.name);
-                            if (T24HRes) {
-                                e.sourcesAvailable.push({
-                                    sourceName: 'T24',
-                                    sourceSlug:
-                                        (process.env.T4_SOURCE_URL as string) +
-                                        T24HRes.slug,
-                                });
-                            }
-
                             return e;
                         }),
                     );
@@ -88,6 +78,25 @@ export default function Comics() {
                         return await Nt.getChapters(comicSlug);
                 }
             } catch (err) {
+                return [];
+            }
+        },
+
+        getPagesOfChap: async (
+            chapterSlug: string,
+            sourceName: Source_Type,
+        ) => {
+            try {
+                switch (sourceName) {
+                    case 'LHM':
+                        return await Lh.getChapterPages(chapterSlug);
+                    case 'NTC':
+                        return await Nt.getChapterPages(chapterSlug);
+                    case 'OTK':
+                        return await Otk.getChapterPages(chapterSlug);
+                }
+            } catch (err) {
+                console.log(`Error getPagesOfChap ${err}`);
                 return [];
             }
         },

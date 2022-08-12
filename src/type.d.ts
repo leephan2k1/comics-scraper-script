@@ -16,7 +16,6 @@ export interface NTMangaPreview {
 export type Source_Type = 'OTK' | 'LHM' | 'T24' | 'NTC';
 
 export interface Comic_Chapters {
-    comicId: string;
     comicSlug: string;
     comicName: string;
     source: string;
@@ -24,6 +23,20 @@ export interface Comic_Chapters {
         sourceName: string;
         chapters: Chapter[];
     }[];
+}
+
+export interface Chapter_Pages {
+    chapterSlug: string;
+    pages: Page_Image[];
+    comicSlug: string;
+    comicName: string;
+    source: string;
+}
+
+export interface Page_Image {
+    id: string;
+    src: string;
+    fallbackSrc?: string;
 }
 
 export interface Chapter {

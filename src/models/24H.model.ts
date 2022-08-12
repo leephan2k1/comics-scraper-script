@@ -1,6 +1,6 @@
 import { AxiosRequestConfig } from 'axios';
 import { parse } from 'node-html-parser';
-
+import { Page_Image } from 'type';
 import Scraper from '../libs/Scraper';
 import { isExactMatch } from '../utils/stringHandler';
 
@@ -57,6 +57,33 @@ export default class _24HModel extends Scraper {
         } catch (err) {
             console.log(err);
             return null;
+        }
+    }
+
+    public async getChapterPages(chapterSlug: string): Promise<Page_Image[]> {
+        try {
+            const { data } = await this.client.get(chapterSlug);
+
+            const document = parse(data);
+
+            console.log(`document: ${document}`);
+
+            const imgs = document.querySelectorAll('.chapter-content img');
+
+            const pages = Array.from(imgs).map((e, idx) => {
+                const src = String(e.getAttribute('data-src'));
+
+                const fallbackSrc = String(e.getAttribute('src'));
+
+                return { id: String(idx), src, fallbackSrc };
+            });
+
+            console.log(`pages:: ${pages.length}`);
+
+            return pages;
+        } catch (err) {
+            console.log(err);
+            return [] as Page_Image[];
         }
     }
 }

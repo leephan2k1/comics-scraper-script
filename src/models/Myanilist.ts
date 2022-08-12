@@ -44,7 +44,6 @@ export default class Myanilist extends Scraper {
             let exactMatch = null;
             //@ts-ignore
             data.categories[0].items.forEach((e) => {
-                console.log(e.name);
                 if (
                     isExactMatch(
                         q.trim().toLowerCase(),

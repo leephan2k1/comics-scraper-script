@@ -8,10 +8,22 @@ import NtModel from '../models/Nt.model';
 import OTKModel from '../models/Otk.model';
 import AnilistModel from '../models/Myanilist';
 import _24HModel from '../models/24H.model';
-import { saveComics, saveDescriptionComics, saveChapters } from '../actions';
+import Chapter from '../models/Chapter.model';
+import {
+    saveComics,
+    saveDescriptionComics,
+    saveChapters,
+    savePagesOfChapter,
+    convertFaunaToMongo,
+} from '../actions';
 import faunaDb from '../services/faunaDb';
+import puppeteer from 'puppeteer';
+import sharp from 'sharp';
+const { Readable } = require('stream');
 
 import cloudinaryController from './cloudinary.controller';
+import { cloudinaryClient } from '../config';
+import ComicsModel from '../models/Comics.model';
 
 const Nt = NtModel.Instance(process.env.NT_SOURCE_URL as string);
 const Lh = lhModel.Instance(process.env.LH_SOURCE_URL as string);
@@ -22,6 +34,7 @@ const Myanilist = AnilistModel.Instance(
 );
 
 import Comics from '../models';
+import axios from 'axios';
 const { getComics } = Comics();
 const { uploadImage } = cloudinaryController();
 
@@ -29,11 +42,8 @@ export default function testController() {
     return {
         testGet: async (req: Request, res: Response, next: NextFunction) => {
             try {
-                const start = new Date(Date.now());
-
                 // const data = await Myanilist.getInfo('119161');
                 // const data = await getComics();
-
                 // const pageData = data?.map((e) => {
                 //     if (e.status === 'fulfilled') {
                 //         return e.value;
@@ -42,29 +52,37 @@ export default function testController() {
 
                 /* Scape all comics. */
                 // await Promise.allSettled(
-                //     [...new Array(544).keys()].map(async (e) => {
+                //     [...new Array(555).keys()].map(async (e) => {
                 //         await saveComics(e + 1);
                 //     }),
                 // );
 
-                // await saveDescriptionComics();
+                // for (let i = 1; i <= 555; i++) {
+                //     await saveComics(i);
+                // }
 
-                // const data = await Otk.getChapters(
-                //     'https://otakusan.net/manga-detail/72756/manh-len-tu-coi-chet',
-                // );
+                // await saveChapters();
 
-                // const result = await faunaDb().paginate(5);
+                // const data = await faunaDb().paginate(10, 'all_comics');
 
                 //@ts-ignore
-                // const data = result.data.map((e) => {
-                //     return e.ref.id;
-                // });
+                // const result = await faunaDb().paginate(5);
+                //@ts-ignore
 
-                await saveChapters();
+                // const data = await ComicsModel.find().limit(5).skip(16435);
+
+                // await savePagesOfChapter();
+
+                // await saveDescriptionComics();
+
+                await savePagesOfChapter();
+
+                // for await (const doc of Chapter.find().cursor()) {
+                //     console.log(doc);
+                // }
 
                 return res.status(200).json({
                     message: 'ok',
-                    // result,
                     // cost:
                     //     Math.round(
                     //         (new Date(Date.now()).getTime() - start.getTime()) /

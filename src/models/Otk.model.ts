@@ -2,7 +2,7 @@ import Scraper from '../libs/Scraper';
 import { parse } from 'node-html-parser';
 import axios, { AxiosRequestConfig } from 'axios';
 import { normalizeString } from '../utils/stringHandler';
-import { Chapter } from 'type';
+import { Chapter, Page_Image } from 'type';
 import logEvents from '../utils/logEvents';
 
 export default class OTKModel extends Scraper {
@@ -119,6 +119,37 @@ export default class OTKModel extends Scraper {
         } catch (error) {
             logEvents('chapters', `get ${comicUrl} source OTK error!`);
             return [] as Chapter[];
+        }
+    }
+
+    public async getChapterPages(chapterSlug: string): Promise<Page_Image[]> {
+        try {
+            const { data } = await this.client.get(
+                `${this.baseUrl}${chapterSlug}`,
+            );
+            const document = parse(data);
+
+            const imageContainer = document.querySelectorAll('.image-wraper');
+
+            const images = Array.from(imageContainer).map((imgDom) => {
+                const id = String(
+                    imgDom.querySelector('img')?.getAttribute('page'),
+                );
+
+                const imgElem = imgDom
+                    .querySelector('img')
+                    ?.getAttribute('src');
+
+                if (!imgElem) {
+                    throw new Error();
+                }
+
+                return { id, src: String(imgElem) };
+            });
+
+            return images;
+        } catch (err) {
+            return [] as Page_Image[];
         }
     }
 }

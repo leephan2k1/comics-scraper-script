@@ -78,11 +78,11 @@ export default function faunaDb() {
             }
         },
 
-        paginate: async (limit: number, after?: any) => {
+        paginate: async (limit: number, index: string, after?: any) => {
             try {
                 const data = await faunaClient.query(
                     q.Map(
-                        q.Paginate(q.Match(q.Index('all_comics')), {
+                        q.Paginate(q.Match(q.Index(index)), {
                             size: limit,
                             after,
                         }),
